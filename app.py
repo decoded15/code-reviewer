@@ -3,6 +3,11 @@ from utils.file_handler import read_uploaded_file
 from utils.prompt_builder import build_review_prompt
 from utils.language_detector import detect_language
 from services.llm_service import stream_review
+from utils.ast_analyzer import (
+    check_syntax,
+    extract_functions,
+    extract_imports
+)
 
 st.set_page_config(
     page_title="Code Reviewer",
@@ -64,6 +69,15 @@ if review_button:
         st.warning("Please paste code or upload a file")
 
     else:
+        is_valid, syntax_error = check_syntax(final_code)
+        if not is_valid:
+            st.error(f"Syntax Error Detected:\n{syntax_error}")
+            st.stop()
+        
+        functions = extract_functions(final_code)
+
+        imports = extract_imports(final_code)
+
         prompt = build_review_prompt(
             code=final_code,
             review_type=review_type,
@@ -73,6 +87,11 @@ if review_button:
         st.success("Prompt built successfully!")
 
         with st.spinner("Reviewing code..."):
+            st.subheader("Code Structure Analysis")
+
+            st.write("Functions:", functions)
+
+            st.write("Imports:", imports)
 
             review_container = st.empty()
 
