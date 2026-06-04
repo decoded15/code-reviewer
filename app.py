@@ -2,7 +2,7 @@ import streamlit as st
 from utils.file_handler import read_uploaded_file
 from utils.prompt_builder import build_review_prompt
 from utils.language_detector import detect_language
-from services.llm_service import generate_review
+from services.llm_service import stream_review
 
 st.set_page_config(
     page_title="Code Reviewer",
@@ -74,6 +74,12 @@ if review_button:
 
         with st.spinner("Reviewing code..."):
 
-            review = generate_review(prompt)
+            review_container = st.empty()
 
-        st.markdown(review)
+            full_review = ""
+
+            for chunk in stream_review(prompt):
+
+                full_review += chunk
+
+                review_container.markdown(full_review)

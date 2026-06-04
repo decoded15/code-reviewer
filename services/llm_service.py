@@ -11,7 +11,13 @@ genai.configure(
 
 model = genai.GenerativeModel("gemini-2.5-flash")
 
-def generate_review(prompt):
-    response = model.generate_content(prompt)
-    return response.text
+def stream_review(prompt):
+
+    response = model.generate_content(
+        prompt,
+        stream=True
+    )
+
+    for chunk in response:
+        yield chunk.text
 
