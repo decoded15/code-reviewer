@@ -1,5 +1,7 @@
 import streamlit as st
 from utils.file_handler import read_uploaded_file
+from utils.prompt_builder import build_review_prompt
+from utils.language_detector import detect_language
 
 st.set_page_config(
     page_title="Code Reviewer",
@@ -43,6 +45,9 @@ uploaded_file = st.file_uploader(
     type=["py", "js", "java", "cpp", "c", "ts"]
 )
 
+if uploaded_file is not None:
+    language = detect_language(uploaded_file.name)
+    
 uploaded_code = ""
 
 if uploaded_file is not None:
@@ -58,4 +63,12 @@ if review_button:
         st.warning("Please paste code or upload a file")
 
     else:
-        st.success("Code received successfully!")
+        prompt = build_review_prompt(
+            code=final_code,
+            review_type=review_type,
+            language=language
+        )
+
+        st.success("Prompt built successfully!")
+
+        st.code(prompt)
