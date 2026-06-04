@@ -69,14 +69,31 @@ if review_button:
         st.warning("Please paste code or upload a file")
 
     else:
-        is_valid, syntax_error = check_syntax(final_code)
-        if not is_valid:
-            st.error(f"Syntax Error Detected:\n{syntax_error}")
-            st.stop()
-        
-        functions = extract_functions(final_code)
+        if language == "Python":
 
-        imports = extract_imports(final_code)
+            is_valid, syntax_error = check_syntax(final_code)
+
+            if not is_valid:
+
+                st.error(f"Syntax Error Detected:\n{syntax_error}")
+
+                st.stop()
+
+            functions = extract_functions(final_code)
+
+            imports = extract_imports(final_code)
+
+            st.subheader("Code Structure Analysis")
+
+            st.write("Functions:", functions)
+
+            st.write("Imports:", imports)
+
+        else:
+
+            st.info(
+                "AST analysis currently supports Python files only."
+            )
 
         prompt = build_review_prompt(
             code=final_code,
@@ -87,11 +104,6 @@ if review_button:
         st.success("Prompt built successfully!")
 
         with st.spinner("Reviewing code..."):
-            st.subheader("Code Structure Analysis")
-
-            st.write("Functions:", functions)
-
-            st.write("Imports:", imports)
 
             review_container = st.empty()
 
