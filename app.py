@@ -1,4 +1,5 @@
 import streamlit as st
+from utils.file_handler import read_uploaded_file
 
 st.set_page_config(
     page_title="Code Reviewer",
@@ -42,4 +43,19 @@ uploaded_file = st.file_uploader(
     type=["py", "js", "java", "cpp", "c", "ts"]
 )
 
+uploaded_code = ""
+
+if uploaded_file is not None:
+    uploaded_code = read_uploaded_file(uploaded_file)
+
+final_code = uploaded_code if uploaded_code else code_input
+
 review_button = st.button("Review Code")
+
+if review_button:
+
+    if not final_code.strip():
+        st.warning("Please paste code or upload a file")
+
+    else:
+        st.success("Code received successfully!")
