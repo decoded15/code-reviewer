@@ -132,7 +132,12 @@ if review_button:
         prompt = build_review_prompt(
             code=final_code,
             review_type=review_type,
-            language=language
+            language=language,
+            functions=functions,
+            imports=imports,
+            long_functions=long_functions,
+            deep_nesting=deep_nesting,
+            import_count=import_count
         )
 
         st.success("Prompt built successfully!")

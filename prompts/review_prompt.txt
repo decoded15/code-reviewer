@@ -15,6 +15,23 @@ Review Type:
 Programming Language:
 {language}
 
+Static Analysis Results:
+
+Functions:
+{functions}
+
+Imports:
+{imports}
+
+Long Functions:
+{long_functions}
+
+Deep Nesting:
+{deep_nesting}
+
+Import Count:
+{import_count}
+
 Code:
 {code}
 
