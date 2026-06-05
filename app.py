@@ -8,6 +8,14 @@ from utils.ast_analyzer import (
     extract_functions,
     extract_imports
 )
+from utils.ast_analyzer import (
+    check_syntax,
+    extract_functions,
+    extract_imports,
+    detect_long_functions,
+    detect_deep_nesting,
+    detect_many_imports
+)
 
 st.set_page_config(
     page_title="Code Reviewer",
@@ -88,6 +96,32 @@ if review_button:
             st.write("Functions:", functions)
 
             st.write("Imports:", imports)
+
+            long_functions = detect_long_functions(final_code)
+
+            deep_nesting = detect_deep_nesting(final_code)
+
+            many_imports, import_count = detect_many_imports(final_code)
+
+            st.subheader("Static Analysis")
+
+            if long_functions:
+
+                st.warning("Long Functions Detected")
+
+                st.write(long_functions)
+
+            if deep_nesting:
+
+                st.warning("Deep Nesting Detected")
+
+                st.write(deep_nesting)
+
+            if many_imports:
+
+                st.warning(
+                    f"High Number of Imports Detected: {import_count}"
+                )
 
         else:
 
