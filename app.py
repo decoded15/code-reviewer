@@ -16,6 +16,9 @@ from utils.ast_analyzer import (
     detect_deep_nesting,
     detect_many_imports
 )
+from utils.code_chunker import chunk_python_code
+from embeddings.chroma_manager import store_chunks
+from retrieval.retriever import retrieve_relevant_code
 
 st.set_page_config(
     page_title="Code Reviewer",
@@ -122,13 +125,20 @@ if review_button:
                 st.warning(
                     f"High Number of Imports Detected: {import_count}"
                 )
+            
+            chunks = chunk_python_code(final_code)
+            store_chunks(chunks)
 
         else:
 
             st.info(
                 "AST analysis currently supports Python files only."
             )
-
+        retrieved_code = retrieve_relevant_code(
+            "authentication logic"
+        )
+        st.subheader("Retrieved Related Code")
+        st.write(retrieved_code)
         prompt = build_review_prompt(
             code=final_code,
             review_type=review_type,
