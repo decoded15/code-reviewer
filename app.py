@@ -135,7 +135,7 @@ if review_button:
                 "AST analysis currently supports Python files only."
             )
         retrieved_code = retrieve_relevant_code(
-            "authentication logic"
+            final_code
         )
         st.subheader("Retrieved Related Code")
         st.write(retrieved_code)
@@ -147,7 +147,8 @@ if review_button:
             imports=imports,
             long_functions=long_functions,
             deep_nesting=deep_nesting,
-            import_count=import_count
+            import_count=import_count,
+            retrieved_context=retrieved_code
         )
 
         st.success("Prompt built successfully!")

@@ -32,6 +32,12 @@ Deep Nesting:
 Import Count:
 {import_count}
 
+Retrieved Repository Context:
+{retrieved_context}
+
+Code:
+{code}
+
 Code:
 {code}
 

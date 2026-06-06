@@ -11,6 +11,7 @@ def build_review_prompt(
             imports,
             long_functions,
             deep_nesting,
+            retrieved_context,
             import_count
         ):
 
@@ -24,7 +25,8 @@ def build_review_prompt(
             long_functions=long_functions,
             deep_nesting=deep_nesting,
             import_count=import_count,
-            code=code
+            code=code,
+            retrieved_context=retrieved_context
         )
 
     return prompt
