@@ -1,13 +1,10 @@
 import streamlit as st
-from utils.file_handler import read_uploaded_file
+
 from utils.prompt_builder import build_review_prompt
 from utils.language_detector import detect_language
+
 from services.llm_service import stream_review
-from utils.ast_analyzer import (
-    check_syntax,
-    extract_functions,
-    extract_imports
-)
+
 from utils.ast_analyzer import (
     check_syntax,
     extract_functions,
@@ -16,9 +13,13 @@ from utils.ast_analyzer import (
     detect_deep_nesting,
     detect_many_imports
 )
+
 from utils.code_chunker import chunk_python_code
+
 from embeddings.chroma_manager import store_chunks
+
 from retrieval.retriever import retrieve_relevant_code
+
 
 st.set_page_config(
     page_title="Code Reviewer",
@@ -30,15 +31,16 @@ st.title("Code Reviewer")
 
 st.markdown(
     """
-    Upload your code or paste it below to get:
+    Upload Python files or paste code below to get:
     - Bug detection
-    - Code optimization suggestions
+    - Optimization suggestions
     - Readability improvements
-    - Best-practice recommendations
+    - Repository-aware AI review
     """
 )
 
 with st.sidebar:
+
     st.header("⚙️ Settings")
 
     review_type = st.selectbox(
@@ -51,116 +53,180 @@ with st.sidebar:
         ]
     )
 
+
 code_input = st.text_area(
     "Paste Your Code Here",
     height=300,
-    placeholder="Paste your Python, JavaScript, Java, C++, etc. code here..."
+    placeholder="Paste your code here..."
 )
 
-uploaded_file = st.file_uploader(
-    "Or Upload a Code File",
-    type=["py", "js", "java", "cpp", "c", "ts"]
+
+uploaded_files = st.file_uploader(
+    "Upload Python Files",
+    type=["py"],
+    accept_multiple_files=True
 )
 
-if uploaded_file is not None:
-    language = detect_language(uploaded_file.name)
-
-uploaded_code = ""
-
-if uploaded_file is not None:
-    uploaded_code = read_uploaded_file(uploaded_file)
-
-final_code = uploaded_code if uploaded_code else code_input
 
 review_button = st.button("Review Code")
 
+
 if review_button:
 
-    if not final_code.strip():
-        st.warning("Please paste code or upload a file")
+    functions = []
+    imports = []
+    long_functions = []
+    deep_nesting = []
+    import_count = 0
 
-    else:
-        if language == "Python":
+    retrieved_code = ""
 
-            is_valid, syntax_error = check_syntax(final_code)
+    final_code = ""
 
-            if not is_valid:
+    language = "Python"
 
-                st.error(f"Syntax Error Detected:\n{syntax_error}")
+    if uploaded_files:
 
-                st.stop()
+        st.subheader("Repository Indexing")
 
-            functions = extract_functions(final_code)
+        for uploaded_file in uploaded_files:
 
-            imports = extract_imports(final_code)
+            code = uploaded_file.read().decode(
+                "utf-8"
+            )
 
-            st.subheader("Code Structure Analysis")
+            chunks = chunk_python_code(code)
 
-            st.write("Functions:", functions)
+            for chunk in chunks:
 
-            st.write("Imports:", imports)
-
-            long_functions = detect_long_functions(final_code)
-
-            deep_nesting = detect_deep_nesting(final_code)
-
-            many_imports, import_count = detect_many_imports(final_code)
-
-            st.subheader("Static Analysis")
-
-            if long_functions:
-
-                st.warning("Long Functions Detected")
-
-                st.write(long_functions)
-
-            if deep_nesting:
-
-                st.warning("Deep Nesting Detected")
-
-                st.write(deep_nesting)
-
-            if many_imports:
-
-                st.warning(
-                    f"High Number of Imports Detected: {import_count}"
+                chunk["file_path"] = (
+                    uploaded_file.name
                 )
-            
-            chunks = chunk_python_code(final_code)
+
             store_chunks(chunks)
 
-        else:
-
-            st.info(
-                "AST analysis currently supports Python files only."
+            st.success(
+                f"Indexed: {uploaded_file.name}"
             )
-        retrieved_code = retrieve_relevant_code(
+
+        final_code = uploaded_files[0].read().decode(
+            "utf-8"
+        )
+
+    elif code_input.strip():
+
+        final_code = code_input
+
+    else:
+
+        st.warning(
+            "Please upload files or paste code."
+        )
+
+        st.stop()
+
+
+    if language == "Python":
+
+        is_valid, syntax_error = check_syntax(
             final_code
         )
-        st.subheader("Retrieved Related Code")
-        st.write(retrieved_code)
-        prompt = build_review_prompt(
-            code=final_code,
-            review_type=review_type,
-            language=language,
-            functions=functions,
-            imports=imports,
-            long_functions=long_functions,
-            deep_nesting=deep_nesting,
-            import_count=import_count,
-            retrieved_context=retrieved_code
+
+        if not is_valid:
+
+            st.error(
+                f"Syntax Error Detected:\n{syntax_error}"
+            )
+
+            st.stop()
+
+        functions = extract_functions(
+            final_code
         )
 
-        st.success("Prompt built successfully!")
+        imports = extract_imports(
+            final_code
+        )
 
-        with st.spinner("Reviewing code..."):
+        long_functions = detect_long_functions(
+            final_code
+        )
 
-            review_container = st.empty()
+        deep_nesting = detect_deep_nesting(
+            final_code
+        )
 
-            full_review = ""
+        many_imports, import_count = (
+            detect_many_imports(final_code)
+        )
 
-            for chunk in stream_review(prompt):
+        st.subheader(
+            "Code Structure Analysis"
+        )
 
-                full_review += chunk
+        st.write("Functions:", functions)
 
-                review_container.markdown(full_review)
+        st.write("Imports:", imports)
+
+        st.subheader("Static Analysis")
+
+        if long_functions:
+
+            st.warning(
+                "Long Functions Detected"
+            )
+
+            st.write(long_functions)
+
+        if deep_nesting:
+
+            st.warning(
+                "Deep Nesting Detected"
+            )
+
+            st.write(deep_nesting)
+
+        if many_imports:
+
+            st.warning(
+                f"High Number of Imports Detected: {import_count}"
+            )
+
+
+    retrieved_code = retrieve_relevant_code(
+        final_code
+    )
+
+    st.subheader(
+        "Retrieved Related Code"
+    )
+
+    st.code(retrieved_code)
+
+
+    prompt = build_review_prompt(
+        code=final_code,
+        review_type=review_type,
+        language=language,
+        functions=functions,
+        imports=imports,
+        long_functions=long_functions,
+        deep_nesting=deep_nesting,
+        import_count=import_count,
+        retrieved_context=retrieved_code
+    )
+
+
+    with st.spinner("Reviewing code..."):
+
+        review_container = st.empty()
+
+        full_review = ""
+
+        for chunk in stream_review(prompt):
+
+            full_review += chunk
+
+            review_container.markdown(
+                full_review
+            )
