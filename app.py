@@ -14,6 +14,14 @@ from utils.ast_analyzer import (
     detect_many_imports
 )
 
+from utils.repo_zip_handler import (
+    extract_zip_repository
+)
+
+from utils.repo_ingestor import (
+    index_repository
+)
+
 from utils.code_chunker import chunk_python_code
 
 from embeddings.chroma_manager import store_chunks
@@ -67,6 +75,10 @@ uploaded_files = st.file_uploader(
     accept_multiple_files=True
 )
 
+uploaded_repo = st.file_uploader(
+    "Upload Repository ZIP",
+    type=["zip"]
+)
 
 review_button = st.button("Review Code")
 
@@ -84,6 +96,26 @@ if review_button:
     final_code = ""
 
     language = "Python"
+
+    if uploaded_repo:
+
+            st.subheader(
+                "Repository Extraction"
+            )
+
+            repo_path = extract_zip_repository(
+                uploaded_repo
+            )
+
+            st.success(
+                "Repository extracted successfully."
+            )
+
+            index_repository(repo_path)
+
+            st.success(
+                "Repository indexed successfully."
+            )
 
     if uploaded_files:
 
