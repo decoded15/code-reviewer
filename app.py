@@ -94,6 +94,10 @@ if review_button:
             code = uploaded_file.read().decode(
                 "utf-8"
             )
+            
+            if final_code == "":
+
+                final_code = code
 
             chunks = chunk_python_code(code)
 
@@ -108,10 +112,6 @@ if review_button:
             st.success(
                 f"Indexed: {uploaded_file.name}"
             )
-
-        final_code = uploaded_files[0].read().decode(
-            "utf-8"
-        )
 
     elif code_input.strip():
 

@@ -22,16 +22,26 @@ def store_chunks(chunks):
         embedding = generate_embedding(
             chunk["code"]
         )
-        collection.add(
-            ids=[chunk["name"]],
+        try:
 
-            embeddings=[embedding],
+                    collection.add(
 
-            documents=[chunk["code"]],
+                        ids=[
+                            f"{chunk['file_path']}_{chunk['name']}"
+                        ],
 
-            metadatas=[
-                {
-                    "type": chunk["type"]
-                }
-            ]
-        )                
+                        embeddings=[embedding],
+
+                        documents=[chunk["code"]],
+
+                        metadatas=[
+                            {
+                                "type": chunk["type"],
+                                "file_path": chunk["file_path"]
+                            }
+                        ]
+                    )
+
+        except Exception as e:
+
+                    print(f"Skipping duplicate: {e}")                
